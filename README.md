@@ -1,0 +1,2 @@
+# telcsifarmer
+Telefonokat farmoló robot 
