@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -16,6 +17,7 @@ type Phone struct {
 	price int
 	city  string
 	link  string
+	ram   string
 }
 
 type PhoneCatalog struct {
@@ -32,9 +34,11 @@ type PhoneCatalog struct {
 }
 
 func main() {
-	c := colly.NewCollector()
+	c_jofog := colly.NewCollector()
 
-	const MAX_PRICE = 150000
+	c_hardapro := colly.NewCollector()
+
+	const MAX_PRICE = 200000
 	const MIN_PRICE = 70000
 
 	const DEPTH = 50
@@ -52,11 +56,21 @@ func main() {
 	rePixel := regexp.MustCompile("PIXEL")
 	reHonor := regexp.MustCompile("HONOR")
 
-	c.OnHTML(".contentArea", func(e *colly.HTMLElement) {
+	/*
+		----------------------------------------------------------
+		----------------------------------------------------------
+		||                       JÓFOGÁS                        ||
+		----------------------------------------------------------
+		----------------------------------------------------------
+	*/
+	c_jofog.OnHTML(".contentArea", func(e *colly.HTMLElement) {
 		currentTitle := e.ChildText("section.subjectWrapper h3.item-title a.subject")
 		currentLink := e.ChildAttr("section.subjectWrapper h3.item-title a.subject", "href")
 		currentPrice := strings.Replace(e.ChildText("section.price div.priceBox h3.item-price span.price-value"), " ", "", -1)
 		currentCity := strings.Replace(e.ChildText("section.cityname"), "  ,", ",", 1)
+		currentRam := getRamClassification(currentTitle)
+
+		//currentRam = strconv.FormatBool(re512GB.MatchString(currentTitle)) + strconv.FormatBool(re256GB.MatchString(currentTitle)) + strconv.FormatBool(re128GB.MatchString(currentTitle)) + strconv.FormatBool(re512GBprob.MatchString(currentTitle)) + strconv.FormatBool(re256GBprob.MatchString(currentTitle)) + strconv.FormatBool(re128GBprob.MatchString(currentTitle))
 		//"a[href].subject"
 
 		// fmt.Printf("%v : %s \n", reSamsung.MatchString(currentTitle), currentTitle)
@@ -71,6 +85,7 @@ func main() {
 					price: currentPriceInt,
 					city:  currentCity,
 					link:  currentLink,
+					ram:   currentRam,
 				})
 
 		} else if reApple.MatchString(strings.ToUpper(currentTitle)) {
@@ -80,6 +95,7 @@ func main() {
 					price: currentPriceInt,
 					city:  currentCity,
 					link:  currentLink,
+					ram:   currentRam,
 				})
 
 		} else if reOnePlus.MatchString(strings.ToUpper(currentTitle)) {
@@ -89,6 +105,7 @@ func main() {
 					price: currentPriceInt,
 					city:  currentCity,
 					link:  currentLink,
+					ram:   currentRam,
 				})
 
 		} else if reSony.MatchString(strings.ToUpper(currentTitle)) {
@@ -98,6 +115,7 @@ func main() {
 					price: currentPriceInt,
 					city:  currentCity,
 					link:  currentLink,
+					ram:   currentRam,
 				})
 
 		} else if reNothing.MatchString(strings.ToUpper(currentTitle)) {
@@ -107,6 +125,7 @@ func main() {
 					price: currentPriceInt,
 					city:  currentCity,
 					link:  currentLink,
+					ram:   currentRam,
 				})
 
 		} else if reHuawei.MatchString(strings.ToUpper(currentTitle)) {
@@ -116,6 +135,7 @@ func main() {
 					price: currentPriceInt,
 					city:  currentCity,
 					link:  currentLink,
+					ram:   currentRam,
 				})
 
 		} else if reXiaomi.MatchString(strings.ToUpper(currentTitle)) {
@@ -125,6 +145,7 @@ func main() {
 					price: currentPriceInt,
 					city:  currentCity,
 					link:  currentLink,
+					ram:   currentRam,
 				})
 
 		} else if rePixel.MatchString(strings.ToUpper(currentTitle)) {
@@ -134,6 +155,7 @@ func main() {
 					price: currentPriceInt,
 					city:  currentCity,
 					link:  currentLink,
+					ram:   currentRam,
 				})
 
 		} else if reHonor.MatchString(strings.ToUpper(currentTitle)) {
@@ -143,6 +165,7 @@ func main() {
 					price: currentPriceInt,
 					city:  currentCity,
 					link:  currentLink,
+					ram:   currentRam,
 				})
 
 		} else {
@@ -152,12 +175,13 @@ func main() {
 					price: currentPriceInt,
 					city:  currentCity,
 					link:  currentLink,
+					ram:   currentRam,
 				})
 
 		}
 	})
 
-	c.OnHTML(".ad-list-pager-item-next", func(n *colly.HTMLElement) {
+	c_jofog.OnHTML(".ad-list-pager-item-next", func(n *colly.HTMLElement) {
 		nextLink := n.Attr("href")
 		phonesCount := 0
 		phonesCount = phonesCount + len(foundPhones.oneplus)
@@ -170,16 +194,177 @@ func main() {
 		phonesCount = phonesCount + len(foundPhones.pixel)
 		phonesCount = phonesCount + len(foundPhones.nothing)
 		phonesCount = phonesCount + len(foundPhones.other)
-		fmt.Printf("Visiting:  %s\n Length Phones: %d\n", nextLink, phonesCount)
+		fmt.Printf("Jófogás Visiting:  %s\n Length Phones: %d\n", nextLink, phonesCount)
 		currentDepth++
-		if currentDepth >= DEPTH {
-			letsExcelize(foundPhones)
+		if currentDepth >= DEPTH || nextLink == "" {
+			//letsExcelize(foundPhones)
+			currentDepth = 0
 			return
 		}
-		c.Visit(nextLink)
+		c_jofog.Visit(nextLink)
 	})
 
-	c.Visit(fmt.Sprintf("https://www.jofogas.hu/magyarorszag/mobiltelefon?max_price=%d&min_price=%d&mobile_memory=3,4,5,6,7,8&mobile_os=1&sp=2", MAX_PRICE, MIN_PRICE))
+	/*
+		----------------------------------------------------------
+		----------------------------------------------------------
+		||                     HARDVERAPRÓ                      ||
+		----------------------------------------------------------
+		----------------------------------------------------------
+	*/
+	c_hardapro.OnHTML(".media-body", func(e *colly.HTMLElement) {
+		currentTitle := e.ChildText("div.uad-title h1 a")
+		currentLink := e.ChildAttr("div.uad-title h1 a", "href")
+		currentPrice := strings.Replace(strings.Replace(e.ChildText("div.uad-info div.uad-price"), " ", "", -1), "Ft", "", -1)
+		currentCity := e.ChildText("div.uad-info div.light")
+		currentRam := getRamClassification(currentTitle)
+
+		//currentRam = strconv.FormatBool(re512GB.MatchString(currentTitle)) + strconv.FormatBool(re256GB.MatchString(currentTitle)) + strconv.FormatBool(re128GB.MatchString(currentTitle)) + strconv.FormatBool(re512GBprob.MatchString(currentTitle)) + strconv.FormatBool(re256GBprob.MatchString(currentTitle)) + strconv.FormatBool(re128GBprob.MatchString(currentTitle))
+		//"a[href].subject"
+
+		//fmt.Println(currentTitle)
+		// fmt.Printf("%v : %s \n", reSamsung.MatchString(currentTitle), currentTitle)
+		currentPriceInt, err := strconv.Atoi(currentPrice)
+		if err != nil {
+			currentPriceInt = -1
+		}
+		if reSamsung.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.samsung = append(foundPhones.samsung,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if reApple.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.apple = append(foundPhones.apple,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if reOnePlus.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.oneplus = append(foundPhones.oneplus,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if reSony.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.sony = append(foundPhones.sony,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if reNothing.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.nothing = append(foundPhones.nothing,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if reHuawei.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.huawei = append(foundPhones.huawei,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if reXiaomi.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.xiaomi = append(foundPhones.xiaomi,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if rePixel.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.pixel = append(foundPhones.pixel,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if reHonor.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.honor = append(foundPhones.honor,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else {
+			foundPhones.other = append(foundPhones.other,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		}
+	})
+
+	c_hardapro.OnHTML("#forum-nav-top ~ ul.mr-md-auto > li.nav-arrow > a", func(n *colly.HTMLElement) {
+		if n.Attr("rel") == "next" {
+			nextLink := "https://hardverapro.hu" + n.Attr("href")
+			phonesCount := 0
+			phonesCount = phonesCount + len(foundPhones.oneplus)
+			phonesCount = phonesCount + len(foundPhones.sony)
+			phonesCount = phonesCount + len(foundPhones.honor)
+			phonesCount = phonesCount + len(foundPhones.huawei)
+			phonesCount = phonesCount + len(foundPhones.xiaomi)
+			phonesCount = phonesCount + len(foundPhones.samsung)
+			phonesCount = phonesCount + len(foundPhones.apple)
+			phonesCount = phonesCount + len(foundPhones.pixel)
+			phonesCount = phonesCount + len(foundPhones.nothing)
+			phonesCount = phonesCount + len(foundPhones.other)
+			fmt.Printf("Hardverapró Visiting:  %s\n Length Phones: %d\n", nextLink, phonesCount)
+			currentDepth++
+			if currentDepth >= DEPTH || nextLink == "" {
+				//letsExcelize(foundPhones)
+				return
+			}
+			c_hardapro.Visit(nextLink)
+		}
+	})
+
+	c_jofog.Visit(fmt.Sprintf("https://www.jofogas.hu/magyarorszag/mobiltelefon?max_price=%d&min_price=%d&mobile_memory=3,4,5,6,7,8&mobile_os=1&sp=2", MAX_PRICE, MIN_PRICE))
+	c_jofog.Wait()
+	c_hardapro.Visit(fmt.Sprintf("https://hardverapro.hu/aprok/mobil/mobil/android/keres.php?stext=&stcid_text=&stcid=&stmid_text=&stmid=&minprice=%d&maxprice=%d&cmpid_text=&cmpid=&usrid_text=&usrid=&__buying=0&__buying=1&stext_none=", MIN_PRICE, MAX_PRICE))
+	c_hardapro.Wait()
+
+	fmt.Println("Done scraping\nStarting Excel")
+
+	sortPhones(foundPhones)
+	letsExcelize(foundPhones)
+
+	fmt.Println("Done with Excel")
 }
 
 func letsExcelize(phones PhoneCatalog) {
@@ -776,4 +961,81 @@ func styleColorofCol(f *excelize.File, sheetName string, cols string, color stri
 		return
 	}
 	f.SetColStyle(sheetName, cols, style)
+}
+
+func sortPhones(phones PhoneCatalog) {
+	sort.Slice(phones.oneplus, func(i, j int) bool {
+		return phones.oneplus[i].price > phones.oneplus[j].price //&& phones.oneplus[i].ram > phones.oneplus[j].ram
+	})
+	sort.Slice(phones.sony, func(i, j int) bool {
+		return phones.sony[i].price > phones.sony[j].price //&& phones.sony[i].ram > phones.sony[j].ram
+	})
+	sort.Slice(phones.nothing, func(i, j int) bool {
+		return phones.nothing[i].price > phones.nothing[j].price //&& phones.nothing[i].ram > phones.nothing[j].ram
+	})
+	sort.Slice(phones.xiaomi, func(i, j int) bool {
+		return phones.xiaomi[i].price > phones.xiaomi[j].price //&& phones.xiaomi[i].ram > phones.xiaomi[j].ram
+	})
+	sort.Slice(phones.huawei, func(i, j int) bool {
+		return phones.huawei[i].price > phones.huawei[j].price //&& phones.huawei[i].ram > phones.huawei[j].ram
+	})
+	sort.Slice(phones.pixel, func(i, j int) bool {
+		return phones.pixel[i].price > phones.pixel[j].price //&& phones.pixel[i].ram > phones.pixel[j].ram
+	})
+	sort.Slice(phones.honor, func(i, j int) bool {
+		return phones.honor[i].price > phones.honor[j].price //&& phones.honor[i].ram > phones.honor[j].ram
+	})
+	sort.Slice(phones.other, func(i, j int) bool {
+		return phones.other[i].price > phones.other[j].price //&& phones.other[i].ram > phones.other[j].ram
+	})
+	sort.Slice(phones.samsung, func(i, j int) bool {
+		return phones.samsung[i].price > phones.samsung[j].price //&& phones.samsung[i].ram > phones.samsung[j].ram
+	})
+	sort.Slice(phones.apple, func(i, j int) bool {
+		return phones.apple[i].price > phones.apple[j].price //&& phones.apple[i].ram > phones.apple[j].ram
+	})
+
+}
+
+func getRamClassification(title string) (ram string) {
+	ram = ""
+
+	re512GB := regexp.MustCompile("512GB|512 GB|512")
+	re512GBprob := regexp.MustCompile("512")
+	re256GB := regexp.MustCompile("256GB|256 GB|256")
+	re256GBprob := regexp.MustCompile("256")
+	re128GB := regexp.MustCompile("128GB|128 GB|128")
+	re128GBprob := regexp.MustCompile("128")
+
+	if re512GB.MatchString(title) {
+		ram += "1"
+	} else {
+		ram += "0"
+	}
+	if re256GB.MatchString(title) {
+		ram += "1"
+	} else {
+		ram += "0"
+	}
+	if re128GB.MatchString(title) {
+		ram += "1"
+	} else {
+		ram += "0"
+	}
+	if re512GBprob.MatchString(title) {
+		ram += "1"
+	} else {
+		ram += "0"
+	}
+	if re256GBprob.MatchString(title) {
+		ram += "1"
+	} else {
+		ram += "0"
+	}
+	if re128GBprob.MatchString(title) {
+		ram += "1"
+	} else {
+		ram += "0"
+	}
+	return
 }
