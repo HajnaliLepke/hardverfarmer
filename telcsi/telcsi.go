@@ -20,7 +20,11 @@ type Phone struct {
 	ram   string
 }
 
+type PhoneBrand struct {
+}
+
 type PhoneCatalog struct {
+	flip    []Phone
 	oneplus []Phone
 	sony    []Phone
 	nothing []Phone
@@ -39,16 +43,17 @@ func main() {
 	c_hardapro := colly.NewCollector()
 
 	const MAX_PRICE = 200000
-	const MIN_PRICE = 70000
+	const MIN_PRICE = 50000
 
 	const DEPTH = 50
 	currentDepth := 0
 
 	var foundPhones PhoneCatalog
 
+	reFlip := regexp.MustCompile("FLIP")
 	reSamsung := regexp.MustCompile("SAMSUNG|GALAXY")
-	reApple := regexp.MustCompile("APPLE")
-	reHuawei := regexp.MustCompile("HUAWEI")
+	reApple := regexp.MustCompile("APPLE|IPHONE")
+	reHuawei := regexp.MustCompile("HUAWEI|HAUWEI")
 	reXiaomi := regexp.MustCompile("XIAOMI|XAOMI")
 	reSony := regexp.MustCompile("SONY")
 	reNothing := regexp.MustCompile("NOTHING")
@@ -78,7 +83,17 @@ func main() {
 		if err != nil {
 			currentPriceInt = -1
 		}
-		if reSamsung.MatchString(strings.ToUpper(currentTitle)) {
+		if reFlip.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.flip = append(foundPhones.flip,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if reSamsung.MatchString(strings.ToUpper(currentTitle)) {
 			foundPhones.samsung = append(foundPhones.samsung,
 				Phone{
 					title: currentTitle,
@@ -227,7 +242,17 @@ func main() {
 		if err != nil {
 			currentPriceInt = -1
 		}
-		if reSamsung.MatchString(strings.ToUpper(currentTitle)) {
+		if reFlip.MatchString(strings.ToUpper(currentTitle)) {
+			foundPhones.flip = append(foundPhones.flip,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if reSamsung.MatchString(strings.ToUpper(currentTitle)) {
 			foundPhones.samsung = append(foundPhones.samsung,
 				Phone{
 					title: currentTitle,
