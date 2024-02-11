@@ -411,7 +411,7 @@ func letsExcelize(phones PhoneCatalog) {
 		f.SetCellValue("Phones", title_cell1, strings.ToUpper(p.name))
 
 		f.MergeCell("Phones", title_cell1, title_cell4)
-		styleColorofCol(f, "Phones", title_cell1[:len(title_cell1)-1]+":"+title_cell4[:len(title_cell4)-1], "C6EFCE")
+		styleColorofCol(f, "Phones", title_cell1[:len(title_cell1)-1]+":"+title_cell4[:len(title_cell4)-1], p.excel_color)
 		styleTitle(f, "Phones", 1+(i*5), 1, 4+(i*5), 1, p.excel_color)
 		f.SetCellValue("Phones", subtitle_cell1, "Cím")
 		styleTitle(f, "Phones", 1+(i*5), 2, 1+(i*5), 2, p.excel_color)
@@ -548,14 +548,28 @@ func styleTitle(f *excelize.File, sheetName string, cellPositionx int, cellPosit
 }
 
 func styleColorofCol(f *excelize.File, sheetName string, cols string, color string) {
-	style, err := f.NewStyle(&excelize.Style{
-		Fill: excelize.Fill{Type: "pattern", Color: []string{color}, Pattern: 1},
-	})
-	if err != nil {
-		fmt.Println(err)
-		return
+
+	if color == "GOOD" {
+		style, err := f.NewStyle(&excelize.Style{
+			Fill: excelize.Fill{Type: "pattern", Color: []string{"C6EFCE"}, Pattern: 1},
+		})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		f.SetColStyle(sheetName, cols, style)
+
+	} else if color == "BAD" {
+		style, err := f.NewStyle(&excelize.Style{
+			Fill: excelize.Fill{Type: "pattern", Color: []string{"FFC7CE"}, Pattern: 1},
+		})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		f.SetColStyle(sheetName, cols, style)
 	}
-	f.SetColStyle(sheetName, cols, style)
+
 }
 
 func sortPhones(phones PhoneCatalog) {
