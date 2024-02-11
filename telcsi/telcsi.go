@@ -32,6 +32,10 @@ type PhoneRegExp struct {
 	p_regexp *regexp.Regexp
 }
 
+type PhoneRegExpCatalog struct {
+	regexps []PhoneRegExp
+}
+
 // type PhoneCatalog struct {
 // 	flip    []Phone
 // 	oneplus []Phone
@@ -149,50 +153,52 @@ func main() {
 			excel_color: "BAD",
 		})
 
-	reFlip := PhoneRegExp{
+	var p_regexps PhoneRegExpCatalog
+
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "flip",
 		p_regexp: regexp.MustCompile("FLIP"),
-	}
-	reFold := PhoneRegExp{
+	})
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "fold",
 		p_regexp: regexp.MustCompile("FOLD"),
-	}
-	reSamsung := PhoneRegExp{
+	})
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "samsung",
 		p_regexp: regexp.MustCompile("SAMSUNG|GALAXY"),
-	}
-	reApple := PhoneRegExp{
+	})
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "apple",
 		p_regexp: regexp.MustCompile("APPLE|IPHONE"),
-	}
-	reHuawei := PhoneRegExp{
+	})
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "huawei",
 		p_regexp: regexp.MustCompile("HUAWEI|HAUWEI"),
-	}
-	reXiaomi := PhoneRegExp{
+	})
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "xiaomi",
 		p_regexp: regexp.MustCompile("XIAOMI|XAOMI"),
-	}
-	reSony := PhoneRegExp{
+	})
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "sony",
 		p_regexp: regexp.MustCompile("SONY"),
-	}
-	reNothing := PhoneRegExp{
+	})
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "nothing",
 		p_regexp: regexp.MustCompile("NOTHING"),
-	}
-	reOnePlus := PhoneRegExp{
+	})
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "oneplus",
 		p_regexp: regexp.MustCompile("ONEPLUS|ONE PLUS"),
-	}
-	rePixel := PhoneRegExp{
+	})
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "pixel",
 		p_regexp: regexp.MustCompile("PIXEL"),
-	}
-	reHonor := PhoneRegExp{
+	})
+	p_regexps.regexps = append(p_regexps.regexps, PhoneRegExp{
 		name:     "honor",
 		p_regexp: regexp.MustCompile("HONOR"),
-	}
+	})
 
 	/*
 		----------------------------------------------------------
@@ -216,128 +222,25 @@ func main() {
 		if err != nil {
 			currentPriceInt = -1
 		}
-		if reFlip.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reFlip.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
 
-		} else if reFold.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reFold.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
+		var foundbrand = false
 
-		} else if reSamsung.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reSamsung.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reApple.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reApple.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reOnePlus.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reOnePlus.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reSony.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reSony.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reNothing.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reNothing.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reHuawei.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reHuawei.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reXiaomi.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reXiaomi.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if rePixel.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(rePixel.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reHonor.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reHonor.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else {
+		for _, v := range p_regexps.regexps {
+			if v.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+				phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(v.name) })
+				foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
+					Phone{
+						title: currentTitle,
+						price: currentPriceInt,
+						city:  currentCity,
+						link:  currentLink,
+						ram:   currentRam,
+					})
+				foundbrand = true
+				break
+			}
+		}
+		if foundbrand == false {
 			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper("other") })
 			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
@@ -347,8 +250,8 @@ func main() {
 					link:  currentLink,
 					ram:   currentRam,
 				})
-
 		}
+
 	})
 
 	c_jofog.OnHTML(".ad-list-pager-item-next", func(n *colly.HTMLElement) {
@@ -390,127 +293,25 @@ func main() {
 		if err != nil {
 			currentPriceInt = -1
 		}
-		if reFlip.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reFlip.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
 
-		} else if reFold.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reFold.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-		} else if reSamsung.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reSamsung.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
+		var foundbrand = false
 
-		} else if reApple.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reApple.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reOnePlus.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reOnePlus.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reSony.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reSony.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reNothing.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reNothing.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reHuawei.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reHuawei.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reXiaomi.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reXiaomi.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if rePixel.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(rePixel.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else if reHonor.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
-			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reHonor.name) })
-			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
-				Phone{
-					title: currentTitle,
-					price: currentPriceInt,
-					city:  currentCity,
-					link:  currentLink,
-					ram:   currentRam,
-				})
-
-		} else {
+		for _, v := range p_regexps.regexps {
+			if v.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+				phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(v.name) })
+				foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
+					Phone{
+						title: currentTitle,
+						price: currentPriceInt,
+						city:  currentCity,
+						link:  currentLink,
+						ram:   currentRam,
+					})
+				foundbrand = true
+				break
+			}
+		}
+		if foundbrand == false {
 			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper("other") })
 			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
@@ -520,8 +321,8 @@ func main() {
 					link:  currentLink,
 					ram:   currentRam,
 				})
-
 		}
+
 	})
 
 	c_hardapro.OnHTML("#forum-nav-top ~ ul.mr-md-auto > li.nav-arrow > a", func(n *colly.HTMLElement) {
