@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -21,23 +22,36 @@ type Phone struct {
 }
 
 type PhoneBrand struct {
+	name        string
+	phones      []Phone
+	excel_color string
 }
 
+type PhoneRegExp struct {
+	name     string
+	p_regexp *regexp.Regexp
+}
+
+// type PhoneCatalog struct {
+// 	flip    []Phone
+// 	oneplus []Phone
+// 	sony    []Phone
+// 	nothing []Phone
+// 	xiaomi  []Phone
+// 	huawei  []Phone
+// 	pixel   []Phone
+// 	honor   []Phone
+// 	other   []Phone
+// 	samsung []Phone
+// 	apple   []Phone
+// }
+
 type PhoneCatalog struct {
-	flip    []Phone
-	oneplus []Phone
-	sony    []Phone
-	nothing []Phone
-	xiaomi  []Phone
-	huawei  []Phone
-	pixel   []Phone
-	honor   []Phone
-	other   []Phone
-	samsung []Phone
-	apple   []Phone
+	phonebrands []PhoneBrand
 }
 
 func main() {
+
 	c_jofog := colly.NewCollector()
 
 	c_hardapro := colly.NewCollector()
@@ -50,16 +64,135 @@ func main() {
 
 	var foundPhones PhoneCatalog
 
-	reFlip := regexp.MustCompile("FLIP")
-	reSamsung := regexp.MustCompile("SAMSUNG|GALAXY")
-	reApple := regexp.MustCompile("APPLE|IPHONE")
-	reHuawei := regexp.MustCompile("HUAWEI|HAUWEI")
-	reXiaomi := regexp.MustCompile("XIAOMI|XAOMI")
-	reSony := regexp.MustCompile("SONY")
-	reNothing := regexp.MustCompile("NOTHING")
-	reOnePlus := regexp.MustCompile("ONEPLUS|ONE PLUS")
-	rePixel := regexp.MustCompile("PIXEL")
-	reHonor := regexp.MustCompile("HONOR")
+	// INIT PHONEBRANDS
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "flip",
+			phones:      make([]Phone, 0),
+			excel_color: "GOOD",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "fold",
+			phones:      make([]Phone, 0),
+			excel_color: "GOOD",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "samsung",
+			phones:      make([]Phone, 0),
+			excel_color: "GOOD",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "sony",
+			phones:      make([]Phone, 0),
+			excel_color: "GOOD",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "oneplus",
+			phones:      make([]Phone, 0),
+			excel_color: "NEUTRAL",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "pixel",
+			phones:      make([]Phone, 0),
+			excel_color: "NEUTRAL",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "honor",
+			phones:      make([]Phone, 0),
+			excel_color: "NEUTRAL",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "nothing",
+			phones:      make([]Phone, 0),
+			excel_color: "NEUTRAL",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "huawei",
+			phones:      make([]Phone, 0),
+			excel_color: "NEUTRAL",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "xiaomi",
+			phones:      make([]Phone, 0),
+			excel_color: "NEUTRAL",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "other",
+			phones:      make([]Phone, 0),
+			excel_color: "NEUTRAL",
+		})
+
+	foundPhones.phonebrands = append(foundPhones.phonebrands,
+		PhoneBrand{
+			name:        "apple",
+			phones:      make([]Phone, 0),
+			excel_color: "BAD",
+		})
+
+	reFlip := PhoneRegExp{
+		name:     "flip",
+		p_regexp: regexp.MustCompile("FLIP"),
+	}
+	reFold := PhoneRegExp{
+		name:     "fold",
+		p_regexp: regexp.MustCompile("FOLD"),
+	}
+	reSamsung := PhoneRegExp{
+		name:     "samsung",
+		p_regexp: regexp.MustCompile("SAMSUNG|GALAXY"),
+	}
+	reApple := PhoneRegExp{
+		name:     "apple",
+		p_regexp: regexp.MustCompile("APPLE|IPHONE"),
+	}
+	reHuawei := PhoneRegExp{
+		name:     "huawei",
+		p_regexp: regexp.MustCompile("HUAWEI|HAUWEI"),
+	}
+	reXiaomi := PhoneRegExp{
+		name:     "xiaomi",
+		p_regexp: regexp.MustCompile("XIAOMI|XAOMI"),
+	}
+	reSony := PhoneRegExp{
+		name:     "sony",
+		p_regexp: regexp.MustCompile("SONY"),
+	}
+	reNothing := PhoneRegExp{
+		name:     "nothing",
+		p_regexp: regexp.MustCompile("NOTHING"),
+	}
+	reOnePlus := PhoneRegExp{
+		name:     "oneplus",
+		p_regexp: regexp.MustCompile("ONEPLUS|ONE PLUS"),
+	}
+	rePixel := PhoneRegExp{
+		name:     "pixel",
+		p_regexp: regexp.MustCompile("PIXEL"),
+	}
+	reHonor := PhoneRegExp{
+		name:     "honor",
+		p_regexp: regexp.MustCompile("HONOR"),
+	}
 
 	/*
 		----------------------------------------------------------
@@ -83,8 +216,9 @@ func main() {
 		if err != nil {
 			currentPriceInt = -1
 		}
-		if reFlip.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.flip = append(foundPhones.flip,
+		if reFlip.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reFlip.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -93,8 +227,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reSamsung.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.samsung = append(foundPhones.samsung,
+		} else if reFold.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reFold.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -103,8 +238,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reApple.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.apple = append(foundPhones.apple,
+		} else if reSamsung.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reSamsung.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -113,8 +249,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reOnePlus.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.oneplus = append(foundPhones.oneplus,
+		} else if reApple.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reApple.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -123,8 +260,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reSony.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.sony = append(foundPhones.sony,
+		} else if reOnePlus.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reOnePlus.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -133,8 +271,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reNothing.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.nothing = append(foundPhones.nothing,
+		} else if reSony.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reSony.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -143,8 +282,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reHuawei.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.huawei = append(foundPhones.huawei,
+		} else if reNothing.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reNothing.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -153,8 +293,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reXiaomi.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.xiaomi = append(foundPhones.xiaomi,
+		} else if reHuawei.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reHuawei.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -163,8 +304,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if rePixel.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.pixel = append(foundPhones.pixel,
+		} else if reXiaomi.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reXiaomi.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -173,8 +315,20 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reHonor.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.honor = append(foundPhones.honor,
+		} else if rePixel.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(rePixel.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+
+		} else if reHonor.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reHonor.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -184,7 +338,8 @@ func main() {
 				})
 
 		} else {
-			foundPhones.other = append(foundPhones.other,
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper("other") })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -199,16 +354,9 @@ func main() {
 	c_jofog.OnHTML(".ad-list-pager-item-next", func(n *colly.HTMLElement) {
 		nextLink := n.Attr("href")
 		phonesCount := 0
-		phonesCount = phonesCount + len(foundPhones.oneplus)
-		phonesCount = phonesCount + len(foundPhones.sony)
-		phonesCount = phonesCount + len(foundPhones.honor)
-		phonesCount = phonesCount + len(foundPhones.huawei)
-		phonesCount = phonesCount + len(foundPhones.xiaomi)
-		phonesCount = phonesCount + len(foundPhones.samsung)
-		phonesCount = phonesCount + len(foundPhones.apple)
-		phonesCount = phonesCount + len(foundPhones.pixel)
-		phonesCount = phonesCount + len(foundPhones.nothing)
-		phonesCount = phonesCount + len(foundPhones.other)
+		for _, v := range foundPhones.phonebrands {
+			phonesCount += len(v.phones)
+		}
 		fmt.Printf("Jófogás Visiting:  %s\n Length Phones: %d\n", nextLink, phonesCount)
 		currentDepth++
 		if currentDepth >= DEPTH || nextLink == "" {
@@ -230,7 +378,7 @@ func main() {
 		currentTitle := e.ChildText("div.uad-title h1 a")
 		currentLink := e.ChildAttr("div.uad-title h1 a", "href")
 		currentPrice := strings.Replace(strings.Replace(e.ChildText("div.uad-info div.uad-price"), " ", "", -1), "Ft", "", -1)
-		currentCity := e.ChildText("div.uad-info div.light")
+		currentCity := e.ChildText("div.uad-info div.uad-light")
 		currentRam := getRamClassification(currentTitle)
 
 		//currentRam = strconv.FormatBool(re512GB.MatchString(currentTitle)) + strconv.FormatBool(re256GB.MatchString(currentTitle)) + strconv.FormatBool(re128GB.MatchString(currentTitle)) + strconv.FormatBool(re512GBprob.MatchString(currentTitle)) + strconv.FormatBool(re256GBprob.MatchString(currentTitle)) + strconv.FormatBool(re128GBprob.MatchString(currentTitle))
@@ -242,8 +390,9 @@ func main() {
 		if err != nil {
 			currentPriceInt = -1
 		}
-		if reFlip.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.flip = append(foundPhones.flip,
+		if reFlip.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reFlip.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -252,8 +401,19 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reSamsung.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.samsung = append(foundPhones.samsung,
+		} else if reFold.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reFold.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
+				Phone{
+					title: currentTitle,
+					price: currentPriceInt,
+					city:  currentCity,
+					link:  currentLink,
+					ram:   currentRam,
+				})
+		} else if reSamsung.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reSamsung.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -262,8 +422,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reApple.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.apple = append(foundPhones.apple,
+		} else if reApple.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reApple.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -272,8 +433,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reOnePlus.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.oneplus = append(foundPhones.oneplus,
+		} else if reOnePlus.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reOnePlus.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -282,8 +444,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reSony.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.sony = append(foundPhones.sony,
+		} else if reSony.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reSony.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -292,8 +455,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reNothing.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.nothing = append(foundPhones.nothing,
+		} else if reNothing.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reNothing.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -302,8 +466,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reHuawei.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.huawei = append(foundPhones.huawei,
+		} else if reHuawei.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reHuawei.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -312,8 +477,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reXiaomi.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.xiaomi = append(foundPhones.xiaomi,
+		} else if reXiaomi.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reXiaomi.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -322,8 +488,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if rePixel.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.pixel = append(foundPhones.pixel,
+		} else if rePixel.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(rePixel.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -332,8 +499,9 @@ func main() {
 					ram:   currentRam,
 				})
 
-		} else if reHonor.MatchString(strings.ToUpper(currentTitle)) {
-			foundPhones.honor = append(foundPhones.honor,
+		} else if reHonor.p_regexp.MatchString(strings.ToUpper(currentTitle)) {
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper(reHonor.name) })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -343,7 +511,8 @@ func main() {
 				})
 
 		} else {
-			foundPhones.other = append(foundPhones.other,
+			phone := slices.IndexFunc(foundPhones.phonebrands, func(p PhoneBrand) bool { return strings.ToUpper(p.name) == strings.ToUpper("other") })
+			foundPhones.phonebrands[phone].phones = append(foundPhones.phonebrands[phone].phones,
 				Phone{
 					title: currentTitle,
 					price: currentPriceInt,
@@ -359,16 +528,9 @@ func main() {
 		if n.Attr("rel") == "next" {
 			nextLink := "https://hardverapro.hu" + n.Attr("href")
 			phonesCount := 0
-			phonesCount = phonesCount + len(foundPhones.oneplus)
-			phonesCount = phonesCount + len(foundPhones.sony)
-			phonesCount = phonesCount + len(foundPhones.honor)
-			phonesCount = phonesCount + len(foundPhones.huawei)
-			phonesCount = phonesCount + len(foundPhones.xiaomi)
-			phonesCount = phonesCount + len(foundPhones.samsung)
-			phonesCount = phonesCount + len(foundPhones.apple)
-			phonesCount = phonesCount + len(foundPhones.pixel)
-			phonesCount = phonesCount + len(foundPhones.nothing)
-			phonesCount = phonesCount + len(foundPhones.other)
+			for _, v := range foundPhones.phonebrands {
+				phonesCount += len(v.phones)
+			}
 			fmt.Printf("Hardverapró Visiting:  %s\n Length Phones: %d\n", nextLink, phonesCount)
 			currentDepth++
 			if currentDepth >= DEPTH || nextLink == "" {
@@ -384,9 +546,10 @@ func main() {
 	c_hardapro.Visit(fmt.Sprintf("https://hardverapro.hu/aprok/mobil/mobil/android/keres.php?stext=&stcid_text=&stcid=&stmid_text=&stmid=&minprice=%d&maxprice=%d&cmpid_text=&cmpid=&usrid_text=&usrid=&__buying=0&__buying=1&stext_none=", MIN_PRICE, MAX_PRICE))
 	c_hardapro.Wait()
 
-	fmt.Println("Done scraping\nStarting Excel")
+	fmt.Println("Done scraping\nStarting Sorting\n")
 
 	sortPhones(foundPhones)
+	fmt.Println("Done sorting\nStarting Excel\n")
 	letsExcelize(foundPhones)
 
 	fmt.Println("Done with Excel")
@@ -409,478 +572,84 @@ func letsExcelize(phones PhoneCatalog) {
 	f.SetActiveSheet(index)
 
 	/*
-
-		// OnePlus \\
-
+		// LOOPING \\
 	*/
 
-	f.SetCellValue("Phones", "A1", "ONEPLUS")
-	f.MergeCell("Phones", "A1", "D1")
-	styleColorofCol(f, "Phones", "A:D", "C6EFCE")
-	styleTitle(f, "Phones", 1, 1, 4, 1, 1)
-	f.SetCellValue("Phones", "A2", "Cím")
-	styleTitle(f, "Phones", 1, 2, 1, 2, 1)
-	f.SetCellValue("Phones", "B2", "Ár")
-	styleTitle(f, "Phones", 2, 2, 2, 2, 1)
-	f.SetCellValue("Phones", "C2", "Város")
-	styleTitle(f, "Phones", 3, 2, 3, 2, 1)
-	f.SetCellValue("Phones", "D2", "Link")
-	styleTitle(f, "Phones", 4, 2, 4, 2, 1)
-	for i, v := range phones.oneplus {
-		cell, err := excelize.CoordinatesToCellName(1, i+3)
+	for i, p := range phones.phonebrands {
+		//fmt.Println("Starting: " + p.name + "\n")
+		title_cell1, err := excelize.CoordinatesToCellName(1+(i*5), 1)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		f.SetCellValue("Phones", cell, v.title)
-
-		cell, err = excelize.CoordinatesToCellName(2, i+3)
+		title_cell4, err := excelize.CoordinatesToCellName(4+(i*5), 1)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		f.SetCellValue("Phones", cell, v.price)
-
-		cell, err = excelize.CoordinatesToCellName(3, i+3)
+		subtitle_cell1, err := excelize.CoordinatesToCellName(1+(i*5), 2)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		f.SetCellValue("Phones", cell, v.city)
-
-		cell, err = excelize.CoordinatesToCellName(4, i+3)
+		subtitle_cell2, err := excelize.CoordinatesToCellName(2+(i*5), 2)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		f.SetCellValue("Phones", cell, v.link)
-	}
-
-	/*
-
-		// Nothing \\
-
-	*/
-
-	f.SetCellValue("Phones", "F1", "NOTHING")
-	f.MergeCell("Phones", "F1", "I1")
-	styleTitle(f, "Phones", 6, 1, 9, 1, 0)
-	f.SetCellValue("Phones", "F2", "Cím")
-	styleTitle(f, "Phones", 6, 2, 6, 2, 0)
-	f.SetCellValue("Phones", "G2", "Ár")
-	styleTitle(f, "Phones", 7, 2, 7, 2, 0)
-	f.SetCellValue("Phones", "H2", "Város")
-	styleTitle(f, "Phones", 8, 2, 8, 2, 0)
-	f.SetCellValue("Phones", "I2", "Link")
-	styleTitle(f, "Phones", 9, 2, 9, 2, 0)
-	for i, v := range phones.nothing {
-		cell, err := excelize.CoordinatesToCellName(6, i+3)
+		subtitle_cell3, err := excelize.CoordinatesToCellName(3+(i*5), 2)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		f.SetCellValue("Phones", cell, v.title)
-
-		cell, err = excelize.CoordinatesToCellName(7, i+3)
+		subtitle_cell4, err := excelize.CoordinatesToCellName(4+(i*5), 2)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		f.SetCellValue("Phones", cell, v.price)
+		f.SetCellValue("Phones", title_cell1, strings.ToUpper(p.name))
 
-		cell, err = excelize.CoordinatesToCellName(8, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
+		f.MergeCell("Phones", title_cell1, title_cell4)
+		styleColorofCol(f, "Phones", title_cell1[:len(title_cell1)-1]+":"+title_cell4[:len(title_cell4)-1], "C6EFCE")
+		styleTitle(f, "Phones", 1+(i*5), 1, 4+(i*5), 1, p.excel_color)
+		f.SetCellValue("Phones", subtitle_cell1, "Cím")
+		styleTitle(f, "Phones", 1+(i*5), 2, 1+(i*5), 2, p.excel_color)
+		f.SetCellValue("Phones", subtitle_cell2, "Ár")
+		styleTitle(f, "Phones", 2+(i*5), 2, 2+(i*5), 2, p.excel_color)
+		f.SetCellValue("Phones", subtitle_cell3, "Város")
+		styleTitle(f, "Phones", 3+(i*5), 2, 3+(i*5), 2, p.excel_color)
+		f.SetCellValue("Phones", subtitle_cell4, "Link")
+		styleTitle(f, "Phones", 4+(i*5), 2, 4+(i*5), 2, p.excel_color)
+		for j, v := range p.phones {
+			//fmt.Println("Writing: " + v.title + "\n")
+			cell, err := excelize.CoordinatesToCellName(1+(i*5), j+3)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			f.SetCellValue("Phones", cell, v.title)
+
+			cell, err = excelize.CoordinatesToCellName(2+(i*5), j+3)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			f.SetCellValue("Phones", cell, v.price)
+
+			cell, err = excelize.CoordinatesToCellName(3+(i*5), j+3)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			f.SetCellValue("Phones", cell, v.city)
+
+			cell, err = excelize.CoordinatesToCellName(4+(i*5), j+3)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			f.SetCellValue("Phones", cell, v.link)
 		}
-		f.SetCellValue("Phones", cell, v.city)
-
-		cell, err = excelize.CoordinatesToCellName(9, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.link)
-	}
-
-	/*
-
-		// Sony \\
-
-	*/
-
-	f.SetCellValue("Phones", "K1", "SONY")
-	f.MergeCell("Phones", "K1", "N1")
-	styleTitle(f, "Phones", 11, 1, 14, 1, 0)
-	f.SetCellValue("Phones", "K2", "Cím")
-	styleTitle(f, "Phones", 11, 2, 11, 2, 0)
-	f.SetCellValue("Phones", "L2", "Ár")
-	styleTitle(f, "Phones", 12, 2, 12, 2, 0)
-	f.SetCellValue("Phones", "M2", "Város")
-	styleTitle(f, "Phones", 13, 2, 13, 2, 0)
-	f.SetCellValue("Phones", "N2", "Link")
-	styleTitle(f, "Phones", 14, 2, 14, 2, 0)
-	for i, v := range phones.sony {
-		cell, err := excelize.CoordinatesToCellName(11, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.title)
-
-		cell, err = excelize.CoordinatesToCellName(12, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.price)
-
-		cell, err = excelize.CoordinatesToCellName(13, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.city)
-
-		cell, err = excelize.CoordinatesToCellName(14, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.link)
-	}
-
-	/*
-
-		// Honor \\
-
-	*/
-
-	f.SetCellValue("Phones", "P1", "HONOR")
-	f.MergeCell("Phones", "P1", "S1")
-	styleTitle(f, "Phones", 16, 1, 19, 1, 0)
-	f.SetCellValue("Phones", "P2", "Cím")
-	styleTitle(f, "Phones", 16, 2, 16, 2, 0)
-	f.SetCellValue("Phones", "Q2", "Ár")
-	styleTitle(f, "Phones", 17, 2, 17, 2, 0)
-	f.SetCellValue("Phones", "R2", "Város")
-	styleTitle(f, "Phones", 18, 2, 18, 2, 0)
-	f.SetCellValue("Phones", "S2", "Link")
-	styleTitle(f, "Phones", 19, 2, 19, 2, 0)
-	for i, v := range phones.honor {
-		cell, err := excelize.CoordinatesToCellName(16, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.title)
-
-		cell, err = excelize.CoordinatesToCellName(17, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.price)
-
-		cell, err = excelize.CoordinatesToCellName(18, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.city)
-
-		cell, err = excelize.CoordinatesToCellName(19, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.link)
-	}
-
-	/*
-
-		// Pixel \\
-
-	*/
-
-	f.SetCellValue("Phones", "U1", "PIXEL")
-	f.MergeCell("Phones", "U1", "X1")
-	styleTitle(f, "Phones", 21, 1, 24, 1, 0)
-	f.SetCellValue("Phones", "U2", "Cím")
-	styleTitle(f, "Phones", 21, 2, 21, 2, 0)
-	f.SetCellValue("Phones", "V2", "Ár")
-	styleTitle(f, "Phones", 22, 2, 22, 2, 0)
-	f.SetCellValue("Phones", "W2", "Város")
-	styleTitle(f, "Phones", 23, 2, 23, 2, 0)
-	f.SetCellValue("Phones", "X2", "Link")
-	styleTitle(f, "Phones", 24, 2, 24, 2, 0)
-	for i, v := range phones.pixel {
-		cell, err := excelize.CoordinatesToCellName(21, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.title)
-
-		cell, err = excelize.CoordinatesToCellName(22, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.price)
-
-		cell, err = excelize.CoordinatesToCellName(23, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.city)
-
-		cell, err = excelize.CoordinatesToCellName(24, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.link)
-	}
-
-	/*
-
-		// Xiaomi \\
-
-	*/
-
-	f.SetCellValue("Phones", "Z1", "XIAOMI")
-	f.MergeCell("Phones", "Z1", "AC1")
-	styleTitle(f, "Phones", 26, 1, 29, 1, 0)
-	f.SetCellValue("Phones", "Z2", "Cím")
-	styleTitle(f, "Phones", 26, 2, 26, 2, 0)
-	f.SetCellValue("Phones", "AA2", "Ár")
-	styleTitle(f, "Phones", 27, 2, 27, 2, 0)
-	f.SetCellValue("Phones", "AB2", "Város")
-	styleTitle(f, "Phones", 28, 2, 28, 2, 0)
-	f.SetCellValue("Phones", "AC2", "Link")
-	styleTitle(f, "Phones", 29, 2, 29, 2, 0)
-	for i, v := range phones.xiaomi {
-		cell, err := excelize.CoordinatesToCellName(26, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.title)
-
-		cell, err = excelize.CoordinatesToCellName(27, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.price)
-
-		cell, err = excelize.CoordinatesToCellName(28, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.city)
-
-		cell, err = excelize.CoordinatesToCellName(29, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.link)
-	}
-
-	/*
-
-		// Huawei \\
-
-	*/
-
-	f.SetCellValue("Phones", "AE1", "HUAWEI")
-	f.MergeCell("Phones", "AE1", "AH1")
-	styleTitle(f, "Phones", 31, 1, 34, 1, 0)
-	f.SetCellValue("Phones", "AE2", "Cím")
-	styleTitle(f, "Phones", 31, 2, 31, 2, 0)
-	f.SetCellValue("Phones", "AF2", "Ár")
-	styleTitle(f, "Phones", 32, 2, 32, 2, 0)
-	f.SetCellValue("Phones", "AG2", "Város")
-	styleTitle(f, "Phones", 33, 2, 33, 2, 0)
-	f.SetCellValue("Phones", "AH2", "Link")
-	styleTitle(f, "Phones", 34, 2, 34, 2, 0)
-	for i, v := range phones.huawei {
-		cell, err := excelize.CoordinatesToCellName(31, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.title)
-
-		cell, err = excelize.CoordinatesToCellName(32, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.price)
-
-		cell, err = excelize.CoordinatesToCellName(33, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.city)
-
-		cell, err = excelize.CoordinatesToCellName(34, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.link)
-	}
-
-	/*
-
-		// Other \\
-
-	*/
-
-	f.SetCellValue("Phones", "AJ1", "OTHER")
-	f.MergeCell("Phones", "AJ1", "AM1")
-	styleTitle(f, "Phones", 36, 1, 39, 1, 0)
-	f.SetCellValue("Phones", "AJ2", "Cím")
-	styleTitle(f, "Phones", 36, 2, 36, 2, 0)
-	f.SetCellValue("Phones", "AK2", "Ár")
-	styleTitle(f, "Phones", 37, 2, 37, 2, 0)
-	f.SetCellValue("Phones", "AL2", "Város")
-	styleTitle(f, "Phones", 38, 2, 38, 2, 0)
-	f.SetCellValue("Phones", "AM2", "Link")
-	styleTitle(f, "Phones", 39, 2, 39, 2, 0)
-	for i, v := range phones.other {
-		cell, err := excelize.CoordinatesToCellName(36, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.title)
-
-		cell, err = excelize.CoordinatesToCellName(37, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.price)
-
-		cell, err = excelize.CoordinatesToCellName(38, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.city)
-
-		cell, err = excelize.CoordinatesToCellName(39, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.link)
-	}
-
-	/*
-
-		// Samsung \\
-
-	*/
-
-	f.SetCellValue("Phones", "AO1", "SAMSUNG")
-	f.MergeCell("Phones", "AO1", "AR1")
-	styleColorofCol(f, "Phones", "AO:AR", "FFC7CE")
-	styleTitle(f, "Phones", 41, 1, 44, 1, -1)
-	f.SetCellValue("Phones", "AO2", "Cím")
-	styleTitle(f, "Phones", 41, 2, 41, 2, -1)
-	f.SetCellValue("Phones", "AP2", "Ár")
-	styleTitle(f, "Phones", 42, 2, 42, 2, -1)
-	f.SetCellValue("Phones", "AQ2", "Város")
-	styleTitle(f, "Phones", 43, 2, 43, 2, -1)
-	f.SetCellValue("Phones", "AR2", "Link")
-	styleTitle(f, "Phones", 44, 2, 44, 2, -1)
-
-	for i, v := range phones.samsung {
-		cell, err := excelize.CoordinatesToCellName(41, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.title)
-
-		cell, err = excelize.CoordinatesToCellName(42, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.price)
-
-		cell, err = excelize.CoordinatesToCellName(43, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.city)
-
-		cell, err = excelize.CoordinatesToCellName(44, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.link)
-	}
-
-	/*
-
-		// Apple \\
-
-	*/
-
-	f.SetCellValue("Phones", "AT1", "APPLE")
-	f.MergeCell("Phones", "AT1", "AW1")
-	styleColorofCol(f, "Phones", "AT:AW", "FFC7CE")
-	styleTitle(f, "Phones", 46, 1, 49, 1, -1)
-	f.SetCellValue("Phones", "AT2", "Cím")
-	styleTitle(f, "Phones", 46, 2, 46, 2, -1)
-	f.SetCellValue("Phones", "AU2", "Ár")
-	styleTitle(f, "Phones", 47, 2, 47, 2, -1)
-	f.SetCellValue("Phones", "AV2", "Város")
-	styleTitle(f, "Phones", 48, 2, 48, 2, -1)
-	f.SetCellValue("Phones", "AW2", "Link")
-	styleTitle(f, "Phones", 49, 2, 49, 2, -1)
-
-	for i, v := range phones.apple {
-		cell, err := excelize.CoordinatesToCellName(46, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.title)
-
-		cell, err = excelize.CoordinatesToCellName(47, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.price)
-
-		cell, err = excelize.CoordinatesToCellName(48, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.city)
-
-		cell, err = excelize.CoordinatesToCellName(49, i+3)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		f.SetCellValue("Phones", cell, v.link)
 	}
 
 	autoFitCols(f, "Phones")
@@ -915,7 +684,7 @@ func autoFitCols(f *excelize.File, sheetName string) {
 	}
 }
 
-func styleTitle(f *excelize.File, sheetName string, cellPositionx int, cellPositiony int, cellPositionx2 int, cellPositiony2 int, colorgoodorbad int) {
+func styleTitle(f *excelize.File, sheetName string, cellPositionx int, cellPositiony int, cellPositionx2 int, cellPositiony2 int, colorgoodorbad string) {
 	fontsize := 11.0
 	if cellPositiony+cellPositiony2 == 2 {
 		fontsize = 14.0
@@ -934,7 +703,7 @@ func styleTitle(f *excelize.File, sheetName string, cellPositionx int, cellPosit
 
 	var style int
 	var styleerr error
-	if colorgoodorbad == 1 { // GOOD
+	if colorgoodorbad == "GOOD" { // GOOD
 		style, styleerr = f.NewStyle(&excelize.Style{
 			Fill:      excelize.Fill{Type: "pattern", Color: []string{"C6EFCE"}, Pattern: 1},
 			Font:      &excelize.Font{Bold: true, Size: fontsize},
@@ -946,7 +715,7 @@ func styleTitle(f *excelize.File, sheetName string, cellPositionx int, cellPosit
 				{Type: "right", Style: 2, Color: "000000"},
 			},
 		})
-	} else if colorgoodorbad == -1 { // BAD
+	} else if colorgoodorbad == "BAD" { // BAD
 		style, styleerr = f.NewStyle(&excelize.Style{
 			Fill:      excelize.Fill{Type: "pattern", Color: []string{"FFC7CE"}, Pattern: 1},
 			Font:      &excelize.Font{Bold: true, Size: fontsize},
@@ -989,36 +758,12 @@ func styleColorofCol(f *excelize.File, sheetName string, cols string, color stri
 }
 
 func sortPhones(phones PhoneCatalog) {
-	sort.Slice(phones.oneplus, func(i, j int) bool {
-		return phones.oneplus[i].price > phones.oneplus[j].price //&& phones.oneplus[i].ram > phones.oneplus[j].ram
-	})
-	sort.Slice(phones.sony, func(i, j int) bool {
-		return phones.sony[i].price > phones.sony[j].price //&& phones.sony[i].ram > phones.sony[j].ram
-	})
-	sort.Slice(phones.nothing, func(i, j int) bool {
-		return phones.nothing[i].price > phones.nothing[j].price //&& phones.nothing[i].ram > phones.nothing[j].ram
-	})
-	sort.Slice(phones.xiaomi, func(i, j int) bool {
-		return phones.xiaomi[i].price > phones.xiaomi[j].price //&& phones.xiaomi[i].ram > phones.xiaomi[j].ram
-	})
-	sort.Slice(phones.huawei, func(i, j int) bool {
-		return phones.huawei[i].price > phones.huawei[j].price //&& phones.huawei[i].ram > phones.huawei[j].ram
-	})
-	sort.Slice(phones.pixel, func(i, j int) bool {
-		return phones.pixel[i].price > phones.pixel[j].price //&& phones.pixel[i].ram > phones.pixel[j].ram
-	})
-	sort.Slice(phones.honor, func(i, j int) bool {
-		return phones.honor[i].price > phones.honor[j].price //&& phones.honor[i].ram > phones.honor[j].ram
-	})
-	sort.Slice(phones.other, func(i, j int) bool {
-		return phones.other[i].price > phones.other[j].price //&& phones.other[i].ram > phones.other[j].ram
-	})
-	sort.Slice(phones.samsung, func(i, j int) bool {
-		return phones.samsung[i].price > phones.samsung[j].price //&& phones.samsung[i].ram > phones.samsung[j].ram
-	})
-	sort.Slice(phones.apple, func(i, j int) bool {
-		return phones.apple[i].price > phones.apple[j].price //&& phones.apple[i].ram > phones.apple[j].ram
-	})
+
+	for _, v := range phones.phonebrands {
+		sort.Slice(v.phones, func(i, j int) bool {
+			return v.phones[i].price > v.phones[j].price //&& v.phones[i].ram > v.phones[j].ram
+		})
+	}
 
 }
 
@@ -1064,3 +809,11 @@ func getRamClassification(title string) (ram string) {
 	}
 	return
 }
+
+/*
+
+#
+#	STOLENED !!!!!!
+#
+
+*/
